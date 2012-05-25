@@ -22,6 +22,7 @@ public class Engine
     protected Screen screen;
     protected BufferStrategy buffer;
     protected EngineGraphics eng;
+    protected EngineRuntime runtime;
     protected int maxFPS = 0;
     protected int sampleFPS = 0;
     protected boolean isRunning = false;
@@ -86,8 +87,18 @@ public class Engine
         public void run()
         {
             isRunning = true;
+            runtime = new EngineRuntime(screen);
             while(isRunning)
             {
+                //Updating objects  
+                runtime.updateStart();
+                for(int i=0;i<screen.grid.objects.size();i++)
+                {
+                    screen.grid.objects.get(i).update(runtime);
+                }                
+                runtime.updateEnd();
+                
+                //Drawing screen
                 eng.setGraphics(buffer.getDrawGraphics());
                 if(!buffer.contentsLost())
                 {
@@ -95,8 +106,7 @@ public class Engine
                     eng.graphics.setColor(Color.WHITE);
                     eng.graphics.fillRect(0, 0, screen.width, screen.height);
                     
-                    int nObjects = screen.grid.objects.size();
-                    for(int i=0;i<nObjects;i++)
+                    for(int i=0;i<screen.grid.objects.size();i++)
                     {
                         screen.grid.objects.get(i).draw(eng);
                     }
@@ -104,10 +114,11 @@ public class Engine
                     buffer.show();
                     eng.graphics.dispose();
                 }
+                
+                //Synching with framerate
                 Toolkit.getDefaultToolkit().sync();
             }
         }
-        
     }
     
 }

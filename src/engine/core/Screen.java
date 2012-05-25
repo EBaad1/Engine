@@ -60,4 +60,13 @@ public class Screen
         return screenY;
     }
     
+    public int mapDX(double dx)
+    {
+        return (int)Math.round((dx - (grid.view.xOrigin - grid.view.width / 2)) * width / grid.view.width);
+    }
+    
+    public int mapDY(double dy)
+    {
+        return (int)Math.round(-1 * (dy - (grid.view.yOrigin - grid.view.height / 2)) * height / grid.view.height);
+    }    
 }

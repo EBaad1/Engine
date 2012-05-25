@@ -1,19 +1,26 @@
 package engine.object;
 
-public class PrimitiveObject extends GridObject
+import engine.object.properties.Property;
+import engine.object.properties.Motion;
+
+public class PrimitiveObject extends WorldObject
 {
+    public Motion motion;
+    
     public PrimitiveObject(Primitive p)
     {
         setPrimitive(p);
+        motion = new Motion();
+        properties.add((Property)motion);
     }
     
     public void setPrimitive(Primitive p)
     {
-        if(primitives.isEmpty())
+        if(structure.isEmpty())
         {
-            primitives.add(p);
+            structure.add(p);
         }else{
-            primitives.set(0, p);
+            structure.set(0, p);
         }
     }
 }

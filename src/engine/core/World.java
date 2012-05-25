@@ -1,12 +1,12 @@
 package engine.core;
 
-import engine.object.GridObject;
+import engine.object.WorldObject;
 import java.util.ArrayList;
 
 public class World
 {
     public double xMin , yMin, xMax, yMax;
-    public ArrayList<GridObject> objects = new <GridObject>ArrayList();
+    public ArrayList<WorldObject> objects = new <WorldObject>ArrayList();
     public View view;
     
     public World(double xMin, double yMin, double xMax, double yMax)

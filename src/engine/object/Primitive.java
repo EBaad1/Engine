@@ -145,7 +145,7 @@ public class Primitive
         return sVerts;
     }
     
-    public void draw(EngineGraphics eng)
+    public void draw(EngineGraphics eng, Vertex position, double rotation)
     {
         if(vertices.size() > 0)
         {
@@ -153,6 +153,8 @@ public class Primitive
             Vertex[] v = mapToScreen(eng.screen);
             
             g.setColor(color);
+            g.translate(eng.screen.mapDX(position.x), eng.screen.mapDY(position.y));
+            g.rotate(rotation);
             switch(type){
                 case POINTS:
                     for(int i=0;i<v.length;i++)
@@ -212,6 +214,7 @@ public class Primitive
                     break;
                     
                 case TRIANGLES:
+                    
                     if(vertices.size() > 2)
                     {
                         for(int i=0;i<(v.length - v.length%3);i += 3)
