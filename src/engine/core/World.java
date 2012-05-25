@@ -15,6 +15,7 @@ public class World
         this.xMax = xMax;
         this.yMin = yMin;
         this.yMax = yMax;
+        view = new View((xMax + xMin) / 2, (yMax - yMin) / 2, (xMax + xMin), (yMax + yMin));
     }
     
     public void setView(View view)

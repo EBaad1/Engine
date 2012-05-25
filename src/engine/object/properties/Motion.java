@@ -6,19 +6,21 @@ import engine.object.Vertex;
 
 public class Motion implements Property
 {
-    public Vertex velocity  = new Vertex(0, 0); // units/second
-    public Vertex acceleration = new Vertex(0, 0); // units/second/second
+    public Vertex linearVelocity  = new Vertex(0, 0); // units/second
+    public Vertex linearAcceleration = new Vertex(0, 0); // units/second/second
+    public Vertex angularVelocity  = new Vertex(0, 0); // radians/second
+    public Vertex angularAcceleration = new Vertex(0, 0); // radians/second/second    
     
-    public void setVelocity(double vx, double vy)
+    public void setLinearVelocity(double vx, double vy)
     {
-        velocity.x = vx;
-        velocity.y = vy;
+        linearVelocity.x = vx;
+        linearVelocity.y = vy;
     }
     
-    public void setAcceleration(double ax, double ay)
+    public void setLinearAcceleration(double ax, double ay)
     {
-        acceleration.x = ax;
-        acceleration.y = ay;
+        linearAcceleration.x = ax;
+        linearAcceleration.y = ay;
     }
     
     public void update(EngineRuntime runtime, WorldObject object)
@@ -26,9 +28,9 @@ public class Motion implements Property
         double dt = (double)runtime.getUpdateTime() / 1000; //seconds
         
         //Xf = Xi + Vi * t + 0.5 * Ai * t ^ 2
-        object.position.x = object.position.x + velocity.x * dt + 0.5 * acceleration.x * Math.pow(dt, 2);
-        object.position.y = object.position.y + velocity.y * dt + 0.5 * acceleration.y * Math.pow(dt, 2);
-        velocity.x = velocity.x + acceleration.x * dt;
-        velocity.y = velocity.y + acceleration.y * dt;
+        object.position.x = object.position.x + linearVelocity.x * dt + 0.5 * linearAcceleration.x * Math.pow(dt, 2);
+        object.position.y = object.position.y + linearVelocity.y * dt + 0.5 * linearAcceleration.y * Math.pow(dt, 2);
+        linearVelocity.x = linearVelocity.x + linearAcceleration.x * dt;
+        linearVelocity.y = linearVelocity.y + linearAcceleration.y * dt;
     }
 }

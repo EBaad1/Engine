@@ -94,6 +94,32 @@ public class Primitive
         vertices.add(new Vertex(x, y));
     }
     
+    public void addVertices(double[][] vertices)
+    {
+        try{
+            for(int i=0;i<vertices.length;i++)
+            {
+                this.vertices.add(new Vertex(vertices[i][0], vertices[i][1]));
+            }
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+            return;
+        }
+    }
+    
+    public void addVertices(double[] x, double[] y)
+    {
+        if(x.length != y.length)
+        {
+            return;
+        }
+        for(int i=0;i<x.length;i++)
+        {
+            this.vertices.add(new Vertex(x[i], y[i]));
+        }        
+    }
+    
     public void addVertex(Vertex v)
     {
         vertices.add(v);
