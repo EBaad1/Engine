@@ -171,7 +171,7 @@ public class Primitive
         return sVerts;
     }
     
-    public void draw(EngineGraphics eng, Vertex position, double rotation)
+    public void draw(EngineGraphics eng, WorldObject obj)
     {
         if(vertices.size() > 0)
         {
@@ -179,8 +179,12 @@ public class Primitive
             Vertex[] v = mapToScreen(eng.screen);
             
             g.setColor(color);
-            g.translate(eng.screen.mapDX(position.x), eng.screen.mapDY(position.y));
-            g.rotate(rotation);
+            
+            for(int i=0;i<obj.properties.size();i++)
+            {
+                obj.properties.get(i).graphics(eng);
+            }
+            
             switch(type){
                 case POINTS:
                     for(int i=0;i<v.length;i++)
