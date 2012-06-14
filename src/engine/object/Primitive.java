@@ -1,12 +1,14 @@
 package engine.object;
 
+import engine.core.EngineObject;
 import engine.core.EngineGraphics;
 import engine.core.Screen;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.util.ArrayList;
 
-public class Primitive
+public class Primitive extends EngineObject
 {   
     public static final short POINTS = 0;
     public static final short LINES = 1;
@@ -175,16 +177,44 @@ public class Primitive
     {
         if(vertices.size() > 0)
         {
+            //Setup drawing resources
             Graphics2D g = eng.graphics;
-            Vertex[] v = mapToScreen(eng.screen);
             
-            g.setColor(color);
+            //Apply transformations and map vertices to screen 
             
-            for(int i=0;i<obj.properties.size();i++)
+            Vertex[] v = new Vertex[vertices.size()];
+            for(int i=0;i<vertices.size();i++)
             {
-                obj.properties.get(i).graphics(eng);
+                v[i] = new Vertex();
+                
+                //Original
+                double xO = vertices.get(i).x;
+                double yO = vertices.get(i).y;
+
+                //Rotating
+                
+                double xR = Math.cos(obj.angularPosition) * (xO - obj.centerOfRotation.x) - Math.sin(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.x;
+                double yR = Math.sin(obj.angularPosition) * (xO - obj.centerOfRotation.x) + Math.cos(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.y;                
+                
+                //Translating
+                double xT = xR + obj.position.x;
+                double yT = yR + obj.position.y;
+                
+                v[i].x = eng.screen.mapX(xT);
+                v[i].y = eng.screen.mapY(yT);
             }
             
+            //
+            
+            
+            //Apply primitive transformations
+            
+            g.setColor(color);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            //g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            
+            //Drawing primitives
             switch(type){
                 case POINTS:
                     for(int i=0;i<v.length;i++)
@@ -332,5 +362,4 @@ public class Primitive
             }
         }
     }
-    
 }

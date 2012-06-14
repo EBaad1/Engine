@@ -3,7 +3,6 @@ package engine.core;
 public class View
 {
     public double xOrigin, yOrigin, width, height;
-    public World grid;
     
     public View(double width, double height)
     {

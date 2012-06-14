@@ -10,9 +10,10 @@ public class Screen
     public int y;
     public int width;
     public int height;
+    public double aspectRatio;
     
     public GraphicsDevice device;
-    public World grid;
+    public World world;
     
     public Screen(GraphicsDevice device, Rectangle dimensions)
     {
@@ -21,23 +22,24 @@ public class Screen
         y = dimensions.y;
         width = dimensions.width;
         height = dimensions.height;
+        aspectRatio = (double)width / (double)height;
     }
     
-    public void setWorld(World grid)
+    public void setWorld(World world)
     {
-        this.grid = grid;
+        this.world = world;
     }
     
     public int mapX(double x)
     {
-        //return (int)Math.round((x - grid.xMin) * width / (grid.xMax - grid.xMin));
-        return (int)Math.round((x - (grid.view.xOrigin - grid.view.width / 2)) * width / grid.view.width);
+        //return (int)Math.round((x - world.xMin) * width / (world.xMax - world.xMin));
+        return (int)Math.round((x - (world.view.xOrigin - (world.view.width / 2))) * width / world.view.width);
     }
     
     public int mapY(double y)
     {
-        //return (int)Math.round(height - (y - grid.yMin) * height / (grid.yMax - grid.yMin));
-        return (int)Math.round(height - (y - (grid.view.yOrigin - grid.view.height / 2)) * height / grid.view.height);
+        //return (int)Math.round(height - (y - world.yMin) * height / (world.yMax - world.yMin));
+        return (int)Math.round(height - (y - (world.view.yOrigin - world.view.height / 2)) * height / world.view.height);
     }
     
     public int[] mapX(double[] x)
@@ -62,11 +64,16 @@ public class Screen
     
     public int mapDX(double dx)
     {
-        return (int)Math.round((dx - (grid.view.xOrigin - grid.view.width / 2)) * width / grid.view.width);
+        return (int)Math.round((dx - (world.view.xOrigin - world.view.width / 2)) * width / world.view.width);
     }
     
     public int mapDY(double dy)
     {
-        return (int)Math.round(-1 * (dy - (grid.view.yOrigin - grid.view.height / 2)) * height / grid.view.height);
-    }    
+        return (int)Math.round(-1 * (dy - (world.view.yOrigin - world.view.height / 2)) * height / world.view.height);
+    }
+    
+    public void setViewToScreenAspectRatio()
+    {
+        world.view.height = world.view.width / aspectRatio;
+    }
 }
