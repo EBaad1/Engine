@@ -1,12 +1,13 @@
 package engine.object;
 
-import engine.core.EngineObject;
 import engine.core.EngineGraphics;
+import engine.core.EngineObject;
 import engine.core.Screen;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.util.ArrayList;
+
 
 public class Primitive extends EngineObject
 {   
@@ -203,7 +204,6 @@ public class Primitive extends EngineObject
                 v[i].x = eng.screen.mapX(xT);
                 v[i].y = eng.screen.mapY(yT);
             }
-            
             //
             
             

@@ -1,8 +1,5 @@
 package engine.core;
 
-import engine.object.WorldObject;
-import java.util.ArrayList;
-
 public class World
 {
     public double xMin , yMin, xMax, yMax;
