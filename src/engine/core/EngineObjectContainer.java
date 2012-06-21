@@ -24,11 +24,20 @@ public class EngineObjectContainer
             int oldLength = objects.length;
             increaseSize(10);
             objects[oldLength] = obj;
+        }else{
+            objects[index] = obj;
         }
         
-        objects[index] = obj;
-        
         sort();
+    }
+    
+    public void set(int index, EngineObject obj)
+    {
+        if(index > objects.length - 1)
+        {
+            increaseSize(index - (objects.length - 1));
+        }
+        objects[index] = obj;
     }
     
     public void remove(EngineObject obj)
@@ -62,7 +71,7 @@ public class EngineObjectContainer
     
     public int size()
     {
-        for(int i=objects.length-1;i>0;i--)
+        for(int i=objects.length-1;i>=0;i--)
         {
             if(objects[i] != null)
             {
@@ -71,6 +80,16 @@ public class EngineObjectContainer
         }
         
         return 0;
+    }
+    
+    public boolean isEmpty()
+    {
+        if(size() == 0)
+        {
+            return true;
+        }else{
+            return false;
+        }
     }
     
     private int firstAvailableIndex()

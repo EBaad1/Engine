@@ -39,7 +39,7 @@ public class Screen
     public int mapY(double y)
     {
         //return (int)Math.round(height - (y - world.yMin) * height / (world.yMax - world.yMin));
-        return (int)Math.round(height - (y - (world.view.yOrigin - world.view.height / 2)) * height / world.view.height);
+        return (int)Math.round(height - (y - (world.view.yOrigin - (world.view.height / 2))) * height / world.view.height);
     }
     
     public int[] mapX(double[] x)
@@ -64,12 +64,12 @@ public class Screen
     
     public int mapDX(double dx)
     {
-        return (int)Math.round((dx - (world.view.xOrigin - world.view.width / 2)) * width / world.view.width);
+        return (int)Math.round(dx * width / world.view.width);
     }
     
     public int mapDY(double dy)
     {
-        return (int)Math.round(-1 * (dy - (world.view.yOrigin - world.view.height / 2)) * height / world.view.height);
+        return (int)Math.round(dy * height / world.view.height);
     }
     
     public void setViewToScreenAspectRatio()

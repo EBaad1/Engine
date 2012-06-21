@@ -3,10 +3,12 @@ package engine.object;
 import engine.core.EngineGraphics;
 import engine.core.EngineObject;
 import engine.core.Screen;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 
 
 public class Primitive extends EngineObject
@@ -22,8 +24,15 @@ public class Primitive extends EngineObject
     public static final short QUADS = 8;
     public static final short QUAD_STRIP= 9;
     
+    public static final short HIGH = 0;
+    public static final short MIDDLE = 1;
+    public static final short LOW = 2;
+    
     public short type;
     public Color color = Color.black;
+    public BufferedImage loadedImage = null;
+    public BufferedImage image = null;
+    private boolean imageUpdated = false;
     
     public int pointSize = 5; //pixels
     
@@ -46,6 +55,7 @@ public class Primitive extends EngineObject
     public void setType(short type)
     {
         this.type = type;
+        imageUpdated = false;
     }    
     
     public void setType(String type)
@@ -90,11 +100,14 @@ public class Primitive extends EngineObject
         {
             this.type = Primitive.QUAD_STRIP;
         }
+        
+        imageUpdated = false;
     }
     
     public void addVertex(double x, double y)
     {
         vertices.add(new Vertex(x, y));
+        imageUpdated = false;
     }
     
     public void addVertices(double[][] vertices)
@@ -109,6 +122,7 @@ public class Primitive extends EngineObject
             e.printStackTrace();
             return;
         }
+        imageUpdated = false;
     }
     
     public void addVertices(double[] x, double[] y)
@@ -121,11 +135,13 @@ public class Primitive extends EngineObject
         {
             this.vertices.add(new Vertex(x[i], y[i]));
         }        
+        imageUpdated = false;
     }
     
     public void addVertex(Vertex v)
     {
         vertices.add(v);
+        imageUpdated = false;
     }
     
     public void addVertices(Vertex[] vertices)
@@ -134,6 +150,7 @@ public class Primitive extends EngineObject
         {
             this.vertices.add(vertices[i]);
         }
+        imageUpdated = false;
     }
     
     public void move(double dx, double dy)
@@ -142,6 +159,7 @@ public class Primitive extends EngineObject
         {
             vertices.get(i).move(dx, dy);
         }
+        imageUpdated = false;
     }
     
     public void scale (double multiplier)
@@ -160,6 +178,85 @@ public class Primitive extends EngineObject
             vertices.get(i).x = centerX + (vertices.get(i).x - centerX) * multiplier;
             vertices.get(i).y = centerY + (vertices.get(i).y - centerY) * multiplier;
         }
+        imageUpdated = false;
+    }
+    
+    private void makeImage(Screen screen)
+    {
+        Bounds bounds = this.getBounds();        
+        
+        if(loadedImage != null)
+        {
+            image = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        }else{
+            image = new BufferedImage(screen.mapDX(bounds.getWidth()), screen.mapDY(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);            
+        }
+        Graphics2D g = image.createGraphics();
+        
+        setRenderingQuality(g, HIGH);
+        
+        //Mapping vertices to image
+        
+        Vertex[] v = new Vertex[vertices.size()];
+        for(int i=0;i<v.length;i++)
+        {
+            v[i] = new Vertex();
+            v[i].x = (int)Math.round((vertices.get(i).x - bounds.xMin) * image.getWidth() / (bounds.xMax - bounds.xMin));
+            v[i].y = (int)Math.round(image.getHeight() - (vertices.get(i).y - bounds.yMin) * image.getHeight() / (bounds.yMax - bounds.yMin));
+        }
+        
+        drawPrimitive(g, v);
+        
+        if(loadedImage != null)
+        {
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
+            g.drawImage(loadedImage, null, 0, 0);
+        }
+        
+        g.dispose();        
+        
+        imageUpdated = true;
+    }
+    
+    public void loadImage(String url)
+    {
+        try{
+             loadedImage = ImageIO.read(new File(url));
+        }catch(IOException e){
+            e.printStackTrace();
+        }        
+        imageUpdated = false;
+    }
+    
+    public Bounds getBounds()
+    {
+        Bounds bounds = new Bounds();
+        double tX, tY;
+        
+        for(int i=0;i<vertices.size();i++)
+        {
+            tX = vertices.get(i).x;
+            tY = vertices.get(i).y;
+
+            if(tX < bounds.xMin)
+            {
+                bounds.xMin = tX;
+            }
+            if(tX > bounds.xMax)
+            {
+                bounds.xMax = tX;
+            }
+            if(tY < bounds.yMin)
+            {
+                bounds.yMin = tY;
+            }
+            if(tY > bounds.yMax)
+            {
+                bounds.yMax = tY;
+            }
+        }
+        
+        return bounds;
     }
     
     public Vertex[] mapToScreen(Screen s)
@@ -174,45 +271,111 @@ public class Primitive extends EngineObject
         return sVerts;
     }
     
+    public void setRenderingQuality(Graphics2D g, short quality)
+    {
+        if(quality == 0)
+        {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);             
+        }
+        
+        if(quality == 1)
+        {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); 
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_DEFAULT);              
+        }
+        
+        if(quality == 2)
+        {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF); 
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);                
+        }
+    }
+    
     public void draw(EngineGraphics eng, WorldObject obj)
+    {   
+        if(!imageUpdated)
+        {
+            makeImage(eng.screen);
+        }
+        
+        Graphics2D g = eng.graphics;
+        
+        Bounds bounds = getBounds();
+        
+        setRenderingQuality(g, HIGH);
+        
+        g.drawImage(image, eng.screen.mapX(obj.position.x), eng.screen.mapY(obj.position.y), eng.screen.mapDX(bounds.getWidth()), eng.screen.mapDY(bounds.getHeight()), null);
+        
+        /*
+        System.out.println("Start");
+        System.out.println("View");
+        System.out.println(eng.screen.world.view.xOrigin);
+        System.out.println(eng.screen.world.view.yOrigin);
+        System.out.println(eng.screen.world.view.width);
+        System.out.println(eng.screen.world.view.height);
+        System.out.println("Bounds");
+        System.out.println(bounds.getWidth());
+        System.out.println(bounds.getHeight());
+        System.out.println("mapped");
+        System.out.println(eng.screen.mapDX(bounds.getWidth()));
+        System.out.println(eng.screen.mapDY(bounds.getHeight()));
+        */
+        
+                
+        /*
+        BufferedImage loaded = null;
+        try{
+             loaded = ImageIO.read(new File("Desert.jpg"));
+        }catch(IOException e){
+            e.printStackTrace();
+        }                
+        g.drawImage(loaded, 0, 0, null);*/
+        /*
+        //Setup drawing resources
+        Graphics2D g = eng.graphics;
+
+        //Apply transformations and map vertices to screen 
+
+        Vertex[] v = new Vertex[vertices.size()];
+        for(int i=0;i<vertices.size();i++)
+        {
+            v[i] = new Vertex();
+
+            //Original
+            double xO = vertices.get(i).x;
+            double yO = vertices.get(i).y;
+
+            //Rotating
+
+            double xR = Math.cos(obj.angularPosition) * (xO - obj.centerOfRotation.x) - Math.sin(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.x;
+            double yR = Math.sin(obj.angularPosition) * (xO - obj.centerOfRotation.x) + Math.cos(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.y;                
+
+            //Translating
+            double xT = xR + obj.position.x;
+            double yT = yR + obj.position.y;
+
+            v[i].x = eng.screen.mapX(xT);
+            v[i].y = eng.screen.mapY(yT);
+        }
+        //
+
+
+        //Apply primitive transformations
+
+        g.setColor(color);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+        drawPrimitive(g, v);
+        */
+    }
+    
+    public void drawPrimitive(Graphics2D g, Vertex[] v)
     {
         if(vertices.size() > 0)
         {
-            //Setup drawing resources
-            Graphics2D g = eng.graphics;
-            
-            //Apply transformations and map vertices to screen 
-            
-            Vertex[] v = new Vertex[vertices.size()];
-            for(int i=0;i<vertices.size();i++)
-            {
-                v[i] = new Vertex();
-                
-                //Original
-                double xO = vertices.get(i).x;
-                double yO = vertices.get(i).y;
-
-                //Rotating
-                
-                double xR = Math.cos(obj.angularPosition) * (xO - obj.centerOfRotation.x) - Math.sin(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.x;
-                double yR = Math.sin(obj.angularPosition) * (xO - obj.centerOfRotation.x) + Math.cos(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.y;                
-                
-                //Translating
-                double xT = xR + obj.position.x;
-                double yT = yR + obj.position.y;
-                
-                v[i].x = eng.screen.mapX(xT);
-                v[i].y = eng.screen.mapY(yT);
-            }
-            //
-            
-            
-            //Apply primitive transformations
-            
             g.setColor(color);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            //g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            
             
             //Drawing primitives
             switch(type){
@@ -222,7 +385,7 @@ public class Primitive extends EngineObject
                         g.fillOval((int)v[i].x - pointSize / 2, (int)v[i].y - pointSize / 2, pointSize, pointSize);
                     }
                     break;
-                    
+
                 case LINES:
                     if(vertices.size() > 1)
                     {
@@ -232,7 +395,7 @@ public class Primitive extends EngineObject
                         }
                     }
                     break;
-                    
+
                 case LINE_STRIP:
                     if(vertices.size() > 1)
                     {
@@ -242,7 +405,7 @@ public class Primitive extends EngineObject
                         }
                     }
                     break;
-                    
+
                 case LINE_LOOP:
                     if(vertices.size() > 1)
                     {
@@ -253,7 +416,7 @@ public class Primitive extends EngineObject
                         g.drawLine((int)v[v.length-1].x, (int)v[v.length-1].y, (int)v[0].x,(int)v[0].y);
                     }
                     break;
-                    
+
                 case POLYGON:
                     if(vertices.size() > 2)
                     {
@@ -272,9 +435,9 @@ public class Primitive extends EngineObject
                         }
                     } 
                     break;
-                    
+
                 case TRIANGLES:
-                    
+
                     if(vertices.size() > 2)
                     {
                         for(int i=0;i<(v.length - v.length%3);i += 3)
@@ -290,7 +453,7 @@ public class Primitive extends EngineObject
                         }
                     }                    
                     break;
-                    
+
                 case TRIANGLE_STRIP:
                     if(vertices.size() > 2)
                     {
@@ -307,7 +470,7 @@ public class Primitive extends EngineObject
                         }
                     }                       
                     break;
-                    
+
                 case TRIANGLE_FAN:
                     if(vertices.size() > 2)
                     {
@@ -326,7 +489,7 @@ public class Primitive extends EngineObject
                         }
                     } 
                     break;
-                    
+
                 case QUADS:
                     if(vertices.size() > 3)
                     {
@@ -359,7 +522,7 @@ public class Primitive extends EngineObject
                         }
                     }                       
                     break;                    
-            }
+            }        
         }
     }
 }
