@@ -3,6 +3,11 @@ package engine.object;
 
 public class PrimitiveObject extends WorldObject
 {   
+    public PrimitiveObject()
+    {
+        
+    }
+    
     public PrimitiveObject(Primitive p)
     {
         setPrimitive(p);

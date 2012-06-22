@@ -30,8 +30,11 @@ public class Primitive extends EngineObject
     
     public short type;
     public Color color = Color.black;
+    
     public BufferedImage loadedImage = null;
     public BufferedImage image = null;
+    public Vertex imageOffset = new Vertex(0, 0);
+    public Vertex imageTileSize = new Vertex(0, 0);
     private boolean imageUpdated = false;
     
     public int pointSize = 5; //pixels
@@ -185,12 +188,8 @@ public class Primitive extends EngineObject
     {
         Bounds bounds = this.getBounds();        
         
-        if(loadedImage != null)
-        {
-            image = new BufferedImage(loadedImage.getWidth(), loadedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        }else{
-            image = new BufferedImage(screen.mapDX(bounds.getWidth()), screen.mapDY(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);            
-        }
+        image = new BufferedImage(screen.mapDX(bounds.getWidth()), screen.mapDY(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);            
+            
         Graphics2D g = image.createGraphics();
         
         setRenderingQuality(g, HIGH);
@@ -210,10 +209,21 @@ public class Primitive extends EngineObject
         if(loadedImage != null)
         {
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
-            g.drawImage(loadedImage, null, 0, 0);
+            if(imageTileSize.x <= 0 || imageTileSize.y <= 0)
+            {
+                g.drawImage(loadedImage, screen.mapDX(imageOffset.x), screen.mapDY(imageOffset.y), image.getWidth(), image.getHeight(), null);
+            }else{
+                for(double y=0;y<image.getHeight();y+=imageTileSize.y)
+                {
+                    for(double x=0;x<image.getWidth();x+=imageTileSize.x)
+                    {
+                        //g.drawImage(image, screen.mapDX(x), screen.mapDY(y), screen.mapDX(imageTileSize.x), screenimageTileSize.y, null);
+                    }
+                }
+            }
         }
         
-        g.dispose();        
+        g.dispose();
         
         imageUpdated = true;
     }
@@ -227,6 +237,29 @@ public class Primitive extends EngineObject
         }        
         imageUpdated = false;
     }
+    
+    public void loadImage(String url, double offSetX, double offSetY)
+    {
+        try{
+             loadedImage = ImageIO.read(new File(url));
+        }catch(IOException e){
+            e.printStackTrace();
+        }        
+        imageOffset.set(offSetX, offSetY);
+        imageUpdated = false;
+    }    
+    
+    public void loadImage(String url, double offSetX, double offSetY, double tileSizeX, double tileSizeY)
+    {
+        try{
+             loadedImage = ImageIO.read(new File(url));
+        }catch(IOException e){
+            e.printStackTrace();
+        }        
+        imageOffset.set(offSetX, offSetY);
+        imageTileSize.set(tileSizeX, tileSizeY);
+        imageUpdated = false;
+    }        
     
     public Bounds getBounds()
     {
@@ -273,19 +306,19 @@ public class Primitive extends EngineObject
     
     public void setRenderingQuality(Graphics2D g, short quality)
     {
-        if(quality == 0)
+        if(quality == HIGH)
         {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);             
         }
         
-        if(quality == 1)
+        if(quality == MIDDLE)
         {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); 
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_DEFAULT);              
         }
         
-        if(quality == 2)
+        if(quality == LOW)
         {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF); 
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);                
@@ -305,70 +338,10 @@ public class Primitive extends EngineObject
         
         setRenderingQuality(g, HIGH);
         
-        g.drawImage(image, eng.screen.mapX(obj.position.x), eng.screen.mapY(obj.position.y), eng.screen.mapDX(bounds.getWidth()), eng.screen.mapDY(bounds.getHeight()), null);
         
-        /*
-        System.out.println("Start");
-        System.out.println("View");
-        System.out.println(eng.screen.world.view.xOrigin);
-        System.out.println(eng.screen.world.view.yOrigin);
-        System.out.println(eng.screen.world.view.width);
-        System.out.println(eng.screen.world.view.height);
-        System.out.println("Bounds");
-        System.out.println(bounds.getWidth());
-        System.out.println(bounds.getHeight());
-        System.out.println("mapped");
-        System.out.println(eng.screen.mapDX(bounds.getWidth()));
-        System.out.println(eng.screen.mapDY(bounds.getHeight()));
-        */
+        g.rotate(-1*obj.angularPosition, eng.screen.mapX(obj.position.x), eng.screen.mapY(obj.position.y));
+        g.drawImage(image, eng.screen.mapX(obj.position.x+bounds.xMin), eng.screen.mapY(obj.position.y+bounds.yMax), eng.screen.mapDX(bounds.getWidth()), eng.screen.mapDY(bounds.getHeight()), null);
         
-                
-        /*
-        BufferedImage loaded = null;
-        try{
-             loaded = ImageIO.read(new File("Desert.jpg"));
-        }catch(IOException e){
-            e.printStackTrace();
-        }                
-        g.drawImage(loaded, 0, 0, null);*/
-        /*
-        //Setup drawing resources
-        Graphics2D g = eng.graphics;
-
-        //Apply transformations and map vertices to screen 
-
-        Vertex[] v = new Vertex[vertices.size()];
-        for(int i=0;i<vertices.size();i++)
-        {
-            v[i] = new Vertex();
-
-            //Original
-            double xO = vertices.get(i).x;
-            double yO = vertices.get(i).y;
-
-            //Rotating
-
-            double xR = Math.cos(obj.angularPosition) * (xO - obj.centerOfRotation.x) - Math.sin(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.x;
-            double yR = Math.sin(obj.angularPosition) * (xO - obj.centerOfRotation.x) + Math.cos(obj.angularPosition) * (yO - obj.centerOfRotation.y) + obj.centerOfRotation.y;                
-
-            //Translating
-            double xT = xR + obj.position.x;
-            double yT = yR + obj.position.y;
-
-            v[i].x = eng.screen.mapX(xT);
-            v[i].y = eng.screen.mapY(yT);
-        }
-        //
-
-
-        //Apply primitive transformations
-
-        g.setColor(color);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
-        drawPrimitive(g, v);
-        */
     }
     
     public void drawPrimitive(Graphics2D g, Vertex[] v)
