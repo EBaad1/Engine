@@ -192,7 +192,7 @@ public class Primitive extends EngineObject
             
         Graphics2D g = image.createGraphics();
         
-        setRenderingQuality(g, HIGH);
+        //setRenderingQuality(g, HIGH);
         
         //Mapping vertices to image
         
@@ -208,16 +208,17 @@ public class Primitive extends EngineObject
         
         if(loadedImage != null)
         {
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
             if(imageTileSize.x <= 0 || imageTileSize.y <= 0)
             {
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
                 g.drawImage(loadedImage, screen.mapDX(imageOffset.x), screen.mapDY(imageOffset.y), image.getWidth(), image.getHeight(), null);
             }else{
-                for(double y=0;y<image.getHeight();y+=imageTileSize.y)
+                for(double y=screen.mapDY((imageOffset.y%imageTileSize.y)-imageTileSize.y);y<=image.getHeight();y+=screen.mapDY(imageTileSize.y))
                 {
-                    for(double x=0;x<image.getWidth();x+=imageTileSize.x)
+                    for(double x=screen.mapDX((imageOffset.x%imageTileSize.x)-imageTileSize.x);x<=image.getWidth();x+=screen.mapDX(imageTileSize.x))
                     {
-                        //g.drawImage(image, screen.mapDX(x), screen.mapDY(y), screen.mapDX(imageTileSize.x), screenimageTileSize.y, null);
+                        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN));
+                        g.drawImage(loadedImage, (int)Math.round(x), (int)Math.round(y), screen.mapDX(imageTileSize.x), screen.mapDY(imageTileSize.y), null);
                     }
                 }
             }
@@ -339,8 +340,9 @@ public class Primitive extends EngineObject
         setRenderingQuality(g, HIGH);
         
         
-        g.rotate(-1*obj.angularPosition, eng.screen.mapX(obj.position.x), eng.screen.mapY(obj.position.y));
-        g.drawImage(image, eng.screen.mapX(obj.position.x+bounds.xMin), eng.screen.mapY(obj.position.y+bounds.yMax), eng.screen.mapDX(bounds.getWidth()), eng.screen.mapDY(bounds.getHeight()), null);
+        g.rotate(-1*obj.angularPosition, eng.screen.mapX(obj.position.x+obj.centerOfRotation.x), eng.screen.mapY(obj.position.y+obj.centerOfRotation.y));
+        g.drawImage(image, eng.screen.mapX(obj.position.x+bounds.xMin), eng.screen.mapY(obj.position.y+bounds.yMax), 
+                    eng.screen.mapDX(bounds.getWidth()), eng.screen.mapDY(bounds.getHeight()), null);
         
     }
     
@@ -447,6 +449,7 @@ public class Primitive extends EngineObject
                 case TRIANGLE_FAN:
                     if(vertices.size() > 2)
                     {
+                        
                         for(int i=2;i<v.length;i++)
                         {
                             int[] xf3 = new int[3];
@@ -458,8 +461,18 @@ public class Primitive extends EngineObject
                             }
                             xf3[2] = (int)v[0].x;
                             yf3[2] = (int)v[0].y;
+                            
                             g.fillPolygon(xf3, yf3, 3);
                         }
+                        /*
+                        int[] x = new int[v.length];
+                        int[] y = new int[v.length];
+                        for(int i=0;i<v.length;i++)
+                        {
+                            x[i] = (int)v[i].x;
+                            y[i] = (int)v[i].y;
+                        }
+                        g.fillPolygon(x, y, v.length);*/
                     } 
                     break;
 
@@ -497,5 +510,15 @@ public class Primitive extends EngineObject
                     break;                    
             }        
         }
+    }
+    
+    public String toString()
+    {
+        String s = "Primitive \nType. "+type+"\n";
+        for(int i=0;i<vertices.size();i++)
+        {
+            s = s+i+". ("+vertices.get(i).x+", "+vertices.get(i).y+")\n";
+        }
+        return s;
     }
 }

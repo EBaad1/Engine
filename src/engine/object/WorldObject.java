@@ -112,4 +112,9 @@ public abstract class WorldObject extends EngineObject {
 
         return bounds;
     }
+    
+    public Primitive getPrimitive(int index)
+    {
+        return (Primitive)structure.get(index);
+    }
 }

@@ -2,7 +2,7 @@ package engine.core;
 
 public class EngineObjectContainer
 {
-    public EngineObject[] objects;
+    private EngineObject[] objects;
     
     public final int UNAVAILABLE = -1;
     
